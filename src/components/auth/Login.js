@@ -1,17 +1,22 @@
 import React, { useRef, useState } from 'react';
 import { validateData } from '../../utils/validation';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import {auth} from "../../utils/firebase";
+import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { addUser } from '../../store/userSlice';
 
 const Login = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [isSignInForm, setIsSignInForm] = useState(true);
-
   const [errorMsg, setErrorMsg] = useState(null);
 
   const toggleForm = () => {
     setIsSignInForm(!isSignInForm);
   };
 
+  const name = useRef(null);
   const email = useRef(null);
   const password = useRef(null);
 
@@ -26,22 +31,28 @@ const Login = () => {
         .then((userCredential) => {
           // Signed up
           const user = userCredential.user;
-          console.log(user);
+
+           updateProfile(user, {
+             displayName: name.current.value
+           }).then(() => {
+              const {displayName, email, uid} = auth.currentUser;
+              dispatch(addUser({ displayName: displayName, email: email, uid: uid}));
+           // Profile updated successfully
+              navigate('/browse');
+          }).catch((error) => {
+            setErrorMsg(error.message);
         })
-        .catch((error) => {
-          const errorMessage = error.message;
-          setErrorMsg(errorMessage);
+        }).catch((error) => {
+          setErrorMsg(error.message);
         });
     } else {
       signInWithEmailAndPassword(auth, email.current.value, password.current.value)
         .then((userCredential) => {
           // Signed in
-          const user = userCredential.user;
-          console.log(user);
+          navigate('/browse');
         })
         .catch((error) => {
-          const errorMessage = error.message;
-          setErrorMsg(errorMessage);
+          setErrorMsg(error.message);
         });
     }
   };
@@ -69,6 +80,7 @@ const Login = () => {
             Full Name
           </label>
           <input
+            ref={name}
             type="text"
             id="fullName"
             name="fullName"
