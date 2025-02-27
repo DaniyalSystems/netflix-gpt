@@ -6,6 +6,8 @@ import { useNavigate } from 'react-router-dom';
 import {auth} from "../../utils/firebase"
 import netflixLogo from '../../assets/images/netflix-logo.jpg'; 
 import netflixLogoInitial from '../../assets/images/n-logo.png';
+import { LANGUAGES } from '../../utils/Constants/Constants';
+import { changeLang, defaultLang } from '../../store/configSlice';
 
 const Header = () => {
 
@@ -17,12 +19,17 @@ const Header = () => {
 
     signOut(auth).then(() => {
       navigate("/");
+      dispatch(defaultLang('en'))
     }).catch((error) => {
       navigate("/error");
     });
 
     dispatch(removeUser());
     navigate('/');
+  }
+
+  const handleLanguageChange = (e) => {
+    dispatch(changeLang(e.target.value))
   }
 
   useEffect(() => {
@@ -46,19 +53,21 @@ const Header = () => {
   return (
     <header className="bg-black shadow-md">
       <div className="container mx-auto flex items-center justify-between p-4">
-        {/* Logo on the left */}
         <div className="flex items-center">
           <img
-            src={netflixLogo} // Replace with your logo path
+            src={netflixLogo}
             alt="Logo"
             className="h-14 w-auto"
           />
         </div>
 
-        {/* Image and Sign-out button on the right */}
         {user && <div className="flex items-center space-x-4">
+          <select onChange={handleLanguageChange} name="language" id="language" className="block p-1 border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800">
+           {LANGUAGES.map(lang => <option key={lang.identifier} value={lang.identifier}>{lang.name}</option>)}
+
+        </select>
           <img
-            src={netflixLogoInitial} // Replace with your image path
+            src={netflixLogoInitial}
             alt="User"
             className="h-10 w-20 rounded-3xl"
           />
